@@ -49,8 +49,11 @@ def calculate(a, b, op):
         return a**b
 
 def main():
+    count = -1
+    right_count = 0
     with open('question.txt') as qst:
         for line in qst:
+            count += 1
             line = line.split('\n')[0]
             print(line, end='=')
         
@@ -79,8 +82,11 @@ def main():
 
             standard_answer = num_stack.pop()
             answer = input()
-            if Fraction(answer) == standard_answer:
+            if answer == "exit":
+                print("共完成{0}道，正确{1}道".format(count, right_count))
+            elif Fraction(answer) == standard_answer:
                 print("正确！")
+                right_count += 1
             else:
                 print("错误！")
 
