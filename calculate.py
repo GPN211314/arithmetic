@@ -61,6 +61,9 @@ def main():
 
             exps_list = []
 
+            # 将**替换为^
+            tmp_ls = expression.split("**")
+            expression = "^".join(tmp_ls)
             # 将数字与符号分离
             for i in expression:
                 if i.isdigit():
@@ -84,11 +87,13 @@ def main():
             answer = input()
             if answer == "exit":
                 print("共完成{0}道，正确{1}道".format(count, right_count))
+                exit(0)
             elif Fraction(answer) == standard_answer:
                 print("正确！")
                 right_count += 1
             else:
                 print("错误！")
+    print("共完成{0}道，正确{1}道".format(count+1, right_count))
 
 if __name__ == '__main__':
     main()
