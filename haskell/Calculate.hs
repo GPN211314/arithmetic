@@ -1,3 +1,11 @@
+module Calculate
+( toString
+, solveRpn
+, toRpn
+, preProcess1
+, preProcess2
+) where
+
 import System.Console.Haskeline
 import System.Environment (getArgs)
 import Data.Ratio
@@ -17,20 +25,22 @@ precedence x = case x of
 
 
 --将表达式两端加上括号，利于算法实现，并将数字与符号分开放在列表中
-preprocess2 :: String -> [String]
-preprocess2 xs = let ys = "(" ++ xs ++ ")"
+preProcess2 :: String -> [String]
+preProcess2 = let    addBracket zs = "(":(zs ++ [")"])
                      isAddSpace a b = (not.isDigit $ a) || (not.isDigit $ b)
                      addSpace s acc = case acc of
                                         (z:zs) -> if isAddSpace s z
                                                    then s:' ':acc
                                                    else s:acc
                                         _      -> s:acc
-                in words $ foldr addSpace [] ys 
+                     check ys | head ys == "-" = ("0":ys)
+                              | otherwise      = ys
+                in addBracket.check.words.(foldr addSpace []) 
 
 
 --将**运算符全部用^替换
-preprocess1 :: String -> String
-preprocess1 xs = foldr funDel [] $ zip ys (map ("*^" `isPrefixOf`) $ tails ys)
+preProcess1 :: String -> String
+preProcess1 xs = foldr funDel [] $ zip ys (map ("*^" `isPrefixOf`) $ tails ys)
               where ys = foldr funInst [] $ zip xs (False:(init (map ("**" `isPrefixOf`) $ tails xs)))
                             where funInst (x, valBool) acc =
                                           case valBool of
@@ -45,9 +55,7 @@ preprocess1 xs = foldr funDel [] $ zip ys (map ("*^" `isPrefixOf`) $ tails ys)
 toRpn :: [String] -> [String]
 toRpn xs = reverse.fst $ foldl' infix2rpn ([],[]) xs
               where infix2rpn (nums, ops) x = 
-                     if (isOp x) 
-                      then popStack nums ops 
-                      else pushStack 
+                     if isOp x then popStack nums ops else pushStack 
                         where popStack as bs = 
                                 case bs of
                                   b:rest -> case x of
@@ -55,7 +63,7 @@ toRpn xs = reverse.fst $ foldl' infix2rpn ([],[]) xs
                                               ")" -> if b == "("
                                                         then (as, rest)
                                                         else popStack (b:as) rest
-                                              _ -> if ((precedence x) <= (precedence b)) && (x /= "^"||b /= "^")
+                                              _ -> if (precedence x) <= (precedence b) && (x /= "^"||b /= "^")
                                                       then popStack (b:as) rest
                                                       else (as ,(x:bs))
                                   _      -> (as ,(x:bs))
@@ -85,18 +93,17 @@ toString x | denominator x == 1 = show.numerator $ x
            | otherwise          = (show.numerator) x ++ "/" ++ (show.denominator $ x)
 
 main =  getArgs >>= (\x -> case x of
-                              ["-c"] -> funInput-- >>= putStrLn >> main
-                                where funInput = runInputT defaultSettings loop
-                                                  where loop = (getInputLine "" >>=
+                              ["-c"] -> runInputT defaultSettings loop
+                                          where loop = (getInputLine "" >>=
                                                               (\y -> case y of
                                                                        Nothing    -> return ()
                                                                        Just ""    -> return ()
                                                                        Just "exit"-> return ()
                                                                        Just "quit"-> return ()
                                                                        Just input -> (return.toString.solveRpn.toRpn.
-                                                                         preprocess2.preprocess1) input >>= 
+                                                                         preProcess2.preProcess1) input >>= 
                                                                            outputStrLn >> loop
                                                               )
-                                                                )
+                                                       )
                               _    -> putStrLn "同时支持两种乘方操作\n-c  计算器交互\n-h  显示当前信息" 
                     )

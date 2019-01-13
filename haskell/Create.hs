@@ -1,3 +1,10 @@
+module Create
+( sameFilter
+, buildExp
+, creatExpLs
+) where
+
+
 import System.Random
 import Data.List
 
