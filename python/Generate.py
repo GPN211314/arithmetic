@@ -115,8 +115,6 @@ class Generate:
             if result == False:
                 continue
             
-            print(arithmetic)
-            print(infix_arithmetic)
             self.question_file.write(infix_arithmetic + '\n')
             ari_num += 1 
             
@@ -219,7 +217,6 @@ class Generate:
         if min_presentation_arithmetic in Generate.min_presentation_set:
             return False, None
         else:
-            print(min_presentation_arithmetic)
             return True, infix_arithmetic
     
     #返回的第一个参数是树的最小表示

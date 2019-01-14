@@ -108,6 +108,3 @@ def main():
                 print("错误！")
     print("共完成{0}道，正确{1}道".format(count + 1, right_count))
 
-
-if __name__ == '__main__':
-    main()
