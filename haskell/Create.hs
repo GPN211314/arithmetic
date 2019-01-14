@@ -90,10 +90,11 @@ buildExp stack x
         where r:l:rest = stack
               isOp = (`elem` ["^","*","/","+","-"])
 
+{-
 main = do
   x <- randomIO::IO Int
   writeFile "question.txt" $ unlines.
     (map show2).take 1000.sameFilter.
       (map (head.(foldl buildExp []).words)).
         creatExpLs $ mkStdGen x
-
+-}

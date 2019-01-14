@@ -92,6 +92,7 @@ toString :: (Integral a, Show a) => Ratio a -> String
 toString x | denominator x == 1 = show.numerator $ x
            | otherwise          = (show.numerator) x ++ "/" ++ (show.denominator $ x)
 
+{-
 main =  getArgs >>= (\x -> case x of
                               ["-c"] -> runInputT defaultSettings loop
                                           where loop = (getInputLine "" >>=
@@ -107,3 +108,4 @@ main =  getArgs >>= (\x -> case x of
                                                        )
                               _    -> putStrLn "同时支持两种乘方操作\n-c  计算器交互\n-h  显示当前信息" 
                     )
+-}
