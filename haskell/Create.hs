@@ -2,6 +2,8 @@ module Create
 ( sameFilter
 , buildExp
 , creatExpLs
+, show1
+, show2
 ) where
 
 
@@ -36,11 +38,22 @@ rightAssoc :: Expression -> Bool
 rightAssoc (Const _) = False
 rightAssoc (Exp _ op _) = op `elem` ["^"]
 
-instance Show Expression where
-    show (Const x) = x
-    show exp@(Exp l op r) = left++" "++op++" "++right
-        where left  = if leftNeedParen then "( "++(show l)++" )" else show l
-              right = if rightNeedParen then "( "++(show r)++" )" else show r
+--instance Show Expression where
+show1 (Const x) = x
+show1 exp@(Exp l op r) = left++" "++(f op)++" "++right
+        where left  = if leftNeedParen then "( "++(show1 l)++" )" else show1 l
+              right = if rightNeedParen then "( "++(show1 r)++" )" else show1 r
+              leftNeedParen = (leftPrec < opPrec) || ((leftPrec == opPrec) && (rightAssoc exp))
+              rightNeedParen = (rightPrec < opPrec) || ((rightPrec == opPrec) && (leftAssoc exp))
+              leftPrec  = precedence l
+              rightPrec = precedence r
+              opPrec    = precedence exp
+              f op = if op == "^" then "**" else op
+
+show2 (Const x) = x
+show2 exp@(Exp l op r) = left++" "++op++" "++right
+        where left  = if leftNeedParen then "( "++(show2 l)++" )" else show2 l
+              right = if rightNeedParen then "( "++(show2 r)++" )" else show2 r
               leftNeedParen = (leftPrec < opPrec) || ((leftPrec == opPrec) && (rightAssoc exp))
               rightNeedParen = (rightPrec < opPrec) || ((rightPrec == opPrec) && (leftAssoc exp))
               leftPrec  = precedence l
@@ -60,7 +73,6 @@ creatRpn x g = ((fst $ creatRpn a g') ++ " " ++ (fst $ creatRpn b g'') ++ " " ++
         (nu, gen''') = randomR (0,4) gen''::(Int, StdGen)
         op = ["+", "-", "*", "/", "^"]!!nu 
 
--- 输入一个整数生成随机种子，后期准备用time做随机种子
 -- 递归生成一个随机生成的表达式无限列表
 creatExpLs::StdGen -> [String]
 creatExpLs x = a:(creatExpLs b)
@@ -81,7 +93,7 @@ buildExp stack x
 main = do
   x <- randomIO::IO Int
   writeFile "question.txt" $ unlines.
-    (map show).take 1000.sameFilter.
+    (map show2).take 1000.sameFilter.
       (map (head.(foldl buildExp []).words)).
         creatExpLs $ mkStdGen x
 

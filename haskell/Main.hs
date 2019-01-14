@@ -26,13 +26,16 @@ tof expr = (foldl' func (return (0,0,0)) expr >>= (\(u, v, _) -> putStrLn ("正�
                     then putStrLn "正确！" >> return (a+1, b+1,0) 
                     else putStrLn "错误！" >> return (a, b+1,0) 
 
+showSelect x | x == "**" = show1
+             | otherwise = show2
+
 main = do
      args <- getArgs
      x <- randomIO::IO Int
      case args of
-       ["-c"] -> writeFile "question.txt" $ unlines.
-         (map show).take 1000.sameFilter.
+       ["-c"] -> putStr "请选择乘方符号（**或^）:" >> hFlush stdout >> getLine >>= (\pow -> writeFile "question.txt" $ unlines.
+         (map $ showSelect pow).take 1000.sameFilter.
          (map (head.(foldl buildExp []).words)).
-           creatExpLs $ mkStdGen x
+           creatExpLs $ mkStdGen x)
        ["-s"] -> readFile "question.txt" >>= return.lines >>= tof
-       _ -> putStrLn "同时支持两种乘方操作\n-c  生成1000道不重复的四则运算题目\n-s  用户输入结果，判断对错，输入为空时退出并给出统计结果\n-h  显示当前信息"
+       _ -> putStrLn "-c  用户选择乘方符号，生成1000道不重复的四则运算题目\n-s  用户输入结果，判断对错，输入为空时退出并给出统计结果\n-h  显示当前信息"
