@@ -187,7 +187,7 @@ class Generate:
                         #否则指数为整数
                         elif math.modf(n2)[0] == 0 and n2 < 14 and n2 > -14:
                             result = n1**n2
-                            if ((result > 10000 or result < -10000) and n2 > 3) or ((result < 1/10000 or result > -1/10000) and n2 < -3):
+                            if (result > 10000 or result < -10000 or (result < 1/10000 and result > -1/10000)) and (n2 > 3 or n2 < -3):
                                 return False
                         else:
                             return False
