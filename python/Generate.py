@@ -161,9 +161,9 @@ class Generate:
  
         return postfix_arithmetic
 
-    #判断运算式中是否有错误，比如除0，底数为负指数为分数等情况
-    #判断计算的结果是否过大，设置上限为10000
-    #判断乘方是否出现指数过大的情况，设置一次乘方结果的上限也为10000
+    #1.判断运算式中是否有错误
+    #2.判断计算的结果是否过大过小
+    #3.判断乘方计算是否过于复杂
     #如果出现上述三种情况就返回false重新生成题目
     def calculate(self, postfix_arithmetic):
         stack = []
@@ -184,8 +184,11 @@ class Generate:
                         #如果底数是0或1，指数不管是多少都可以进行乘方操作
                         if n1 == 0 or n1 == 1:
                             result = n1**n2
-                        elif n2 < 14 and math.modf(n2)[0] == 0:
+                        #否则指数为整数
+                        elif math.modf(n2)[0] == 0 and n2 < 14 and n2 > -14:
                             result = n1**n2
+                            if ((result > 10000 or result < -10000) and n2 > 3) or ((result < 1/10000 or result > -1/10000) and n2 < -3):
+                                return False
                         else:
                             return False
                 except Exception : #所有运算上的错误
