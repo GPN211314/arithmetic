@@ -8,6 +8,7 @@ import random
 import operator
 import math
 
+#树的节点类
 class Tree_node:
     def __init__(self, ch):
         self.ch = ch
@@ -15,22 +16,24 @@ class Tree_node:
         self.rchild = None
 
 class Generate:
-    max_operator_number = 10 #除括号外的运算符的个数最多为10
-    arithmetic_number = 1000 #运算式的个数为1000
+    max_operator_number = 10  #除括号外的运算符的个数最多为10
+    arithmetic_number = 1000  #运算式的个数为1000
     operator_list = ['+', '-', '*', '/', '(', ')', '^']
-    operator_list_length = 7 #运算符一共7个（包括乘方）
-    max_number = 100 #数字最大为100，即100以内运算    
+    operator_list_length = 7  #运算符一共7个（包括乘方）
+    max_number = 100   #数字最大为100，即100以内运算    
     priority = {'+': 1,'-': 1,'*': 2,'/': 2,'^': 3}# 运算符优先
-    max_result = 10000 #计算结果的上限为10000，防止出现数字过大难以计算
+    max_result = 10000  #计算结果的上限为10000，防止出现数字过大难以计算
     min_result = -10000 #计算结果的下限为10000
-    min_presentation_set = set()
-    power_symbol = '^' #表示乘方的符号
+    min_presentation_set = set() #存储最小表示的集合
+    power_symbol = '^'   #表示乘方的符号
     
+	#构造函数
     def __init__(self, power_symbol):
         if(power_symbol == "**"):
             Generate.power_symbol = "**"
         self.question_file = open('question.txt', 'w')
     
+	#从左到右生成运算式
     def generate_arithmetic(self):        
         
         ari_num = 0 #运算式的个数，共需要1000个
@@ -195,8 +198,7 @@ class Generate:
         return stack[0] <= 10000 and stack[0] >= -10000
     
     #将后缀表达式转化为树
-    #再调用tree2minpresentation_and_infix将树转化为最小表示和中缀表达式
-    #返回值为最小表示是否重复和中缀表达式
+    #返回值树的根节点
     def postfix2tree(self, postfix_arithmetic):        
         stack = []
         for ch in postfix_arithmetic:
