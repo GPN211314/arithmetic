@@ -34,7 +34,7 @@ main = do
      x <- randomIO::IO Int
      case args of
        ["-c"] -> putStr "请选择乘方符号（**或^）:" >> hFlush stdout >> getLine >>= (\pow -> writeFile "question.txt" $ unlines.
-         (map $ showSelect pow).take 1000.sameFilter.
+         (map $ showSelect pow).take 1000.dapFilter.sameFilter.
          (map (head.(foldl buildExp []).words)).
            creatExpLs $ mkStdGen x)
        ["-s"] -> readFile "question.txt" >>= return.lines >>= tof

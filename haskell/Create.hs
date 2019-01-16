@@ -1,5 +1,6 @@
 module Create
 ( sameFilter
+, dapFilter
 , buildExp
 , creatExpLs
 , show1
@@ -9,6 +10,8 @@ module Create
 
 import System.Random
 import Data.List
+import Calculate
+import Data.Ratio
 
 data Expression = Const String | Exp Expression String Expression
 instance Eq Expression where
@@ -62,7 +65,7 @@ show2 exp@(Exp l op r) = left++" "++op++" "++right
               
 creatRpn::Int -> StdGen -> (String, StdGen)
 creatRpn 1 g = (show a, b)
-  where (a, b) = randomR (1,20) g::(Int, StdGen)
+  where (a, b) = randomR (0,20) g::(Int, StdGen)
 creatRpn x g = ((fst $ creatRpn a g') ++ " " ++ (fst $ creatRpn b g'') ++ " " ++ op, gen''')
   where (a, gen) = randomR (1,x-1) g::(Int, StdGen)
         b = x-a
@@ -79,6 +82,27 @@ creatExpLs x = a:(creatExpLs b)
   where (y, gen) = randomR (2,11) x::(Int, StdGen)
         (a, b) = creatRpn y gen
 
+--过滤掉表达式无限列表中除数为零的表达式
+--过滤掉过大的指数
+dapFilter::[Expression] -> [Expression]
+dapFilter  = filter (not.dap) 
+  where dap::Expression -> Bool
+        dap (Const _) = False 
+        dap (Exp l x r)   | x=="/" = if dap l || dap r
+                                        then True
+                                        else (solveRpn.toRpn.preProcess2.preProcess1.show2) r == 0%1
+                          | x=="^" = if dap l || dap r
+                                        then True
+                                        else if (abs.solveRpn.toRpn.preProcess2.preProcess1.show2) l > 100%1
+                                                then True
+                                                else if (abs.solveRpn.toRpn.preProcess2.preProcess1.show2) r > 5%1
+                                                      then True
+                                                      else if (denominator.solveRpn.toRpn.preProcess2.preProcess1.show2) r /= 1
+                                                              then True
+                                                              else False
+                          | otherwise = dap l || dap r
+
+
 --过滤掉表达式无限列表中的相同的表达式
 sameFilter::[Expression] -> [Expression]
 sameFilter (x:xs) = x : (sameFilter $ filter (/=x) xs)
@@ -94,7 +118,7 @@ buildExp stack x
 main = do
   x <- randomIO::IO Int
   writeFile "question.txt" $ unlines.
-    (map show2).take 1000.sameFilter.
+    (map show2).take 1000.dapFilter.sameFilter.
       (map (head.(foldl buildExp []).words)).
         creatExpLs $ mkStdGen x
 -}
