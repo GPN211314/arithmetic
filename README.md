@@ -12,5 +12,6 @@
 	/ Calculate.py
 	/ Main.py
 	/ cal_test.py
+	/ gen_test.py
 ```
 
