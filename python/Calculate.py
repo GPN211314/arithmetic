@@ -2,6 +2,7 @@
 # coding:utf-8
 
 from fractions import Fraction
+import sys
 
 # 将**替换为^
 def instead(expression):
@@ -94,7 +95,7 @@ def tof(standard_answer, count, right_count):
     answer = input()
     if answer == "":
         print("共完成{0}道，正确{1}道".format(count, right_count))
-        exit(0)
+        sys.exit(0)
     elif Fraction(answer) == standard_answer:
         print("正确！")
         right_count += 1
