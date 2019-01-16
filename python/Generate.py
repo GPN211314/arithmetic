@@ -56,25 +56,13 @@ class Generate:
                     continue
                 elif operator == ')': #如果是右括号)
                     #如果有还没有配对的左括号，可以加上右括号
-                    if brackets_number > 0 :
-                        add_rightbracket = True
-                        
-                        #首先判断数字左边是不是左括号
-                        index = -1
-                        while arithmetic[index] >= '1' and arithmetic[index] <= '9':
-                            index -= 1
-                            if(arithmetic[index] == '('):
-                                #如果数字左边是左括号，直接加上右括号没有意义
-                                add_rightbracket = False
-                        
-                        #数字左侧不是左括号
-                        if add_rightbracket ==True:                            
+                    if brackets_number > 0 :                            
+                        arithmetic += ')'
+                        brackets_number -= 1
+                        #可以有若干个连续的右括号，但需要保证有未匹配的左括号
+                        while brackets_number > 0 and 5 == random.randint(0, Generate.operator_list_length - 1):
                             arithmetic += ')'
                             brackets_number -= 1
-                            #可以有若干个连续的右括号，但需要保证有未匹配的左括号
-                            while brackets_number > 0 and 5 == random.randint(0, Generate.operator_list_length - 1):
-                                arithmetic += ')'
-                                brackets_number -= 1
                         
                         #无论有没有加上右括号，后面都需要加上一个运算符                        
                         operator = Generate.operator_list[random.randint(0, Generate.operator_list_length - 1)]
@@ -110,13 +98,18 @@ class Generate:
             if result == False :
                 continue
             
-            #如果运算式重复，就重新生成            
-            result, infix_arithmetic = self.postfix2tree(postfix_arithmetic)
-            if result == False:
+            #用后缀表达式生成运算式树
+            tree_root = self.postfix2tree(postfix_arithmetic)
+            #用运算式树生成最小表示和中缀表达式
+            min_presentation_arithmetic, infix_arithmetic = self.tree2minpresentation_and_infix(tree_root)  
+
+            #如果运算式重复，就重新生成 
+            if min_presentation_arithmetic in Generate.min_presentation_set:
                 continue
-            
-            self.question_file.write(infix_arithmetic + '\n')
-            ari_num += 1 
+            else:
+                Generate.min_presentation_set.add(min_presentation_arithmetic)
+                self.question_file.write(infix_arithmetic + '\n')
+                ari_num += 1 
             
         self.question_file.close()
       
@@ -159,6 +152,8 @@ class Generate:
         while len(stack) > 0:
             postfix_arithmetic.append(stack.pop())
  
+        print(postfix_arithmetic)
+
         return postfix_arithmetic
 
     #1.判断运算式中是否有错误
@@ -183,6 +178,8 @@ class Generate:
                     elif i == '^':             
                         #如果底数是0或1，指数不管是多少都可以进行乘方操作
                         if n1 == 0 or n1 == 1:
+                            if n1 == 0 and n2 == 0: #0^0单独判断
+                                return False
                             result = n1**n2
                         #否则指数为整数
                         elif math.modf(n2)[0] == 0 and n2 < 14 and n2 > -14:
@@ -205,6 +202,7 @@ class Generate:
     def postfix2tree(self, postfix_arithmetic):        
         stack = []
         for ch in postfix_arithmetic:
+            #单节点树
             node = Tree_node(ch)
             if ch in "+-*/^":
                 right = stack.pop()
@@ -215,12 +213,7 @@ class Generate:
             else:
                 stack.append(node)
         
-        min_presentation_arithmetic, infix_arithmetic = self.tree2minpresentation_and_infix(stack[0])  
-
-        if min_presentation_arithmetic in Generate.min_presentation_set:
-            return False, None
-        else:
-            return True, infix_arithmetic
+        return stack[0]
     
     #返回的第一个参数是树的最小表示
     #返回的第二个参数是由树转换成的中缀表达式           
@@ -228,15 +221,18 @@ class Generate:
         if node.lchild == None and node.rchild == None:#叶节点
             return '\''+ node.ch + '\'', node.ch
         else:#非叶节点
-            temp_min_left, temp_infix_left = self.tree2minpresentation_and_infix(node.lchild)
-            temp_min_right, temp_infix_right = self.tree2minpresentation_and_infix(node.rchild)            
-            temp_infix_left, temp_infix_right = self.add_brackets(temp_infix_left, temp_infix_right, node)
+            temp_min_left, temp_infix_left = self.tree2minpresentation_and_infix(node.lchild) #左子节点
+            temp_min_right, temp_infix_right = self.tree2minpresentation_and_infix(node.rchild) #右子节点
+            temp_infix_left, temp_infix_right = self.add_brackets(temp_infix_left, temp_infix_right, node) #加括号
             
-            if node.ch in "-/^":
-                if node.ch == '^':
-                    node.ch = Generate.power_symbol
-                return node.ch + temp_min_left + temp_min_right, temp_infix_left + node.ch + temp_infix_right                    
-            else : # node.ch in "+*"
+            if node.ch in "-/":
+                return node.ch + temp_min_left + temp_min_right, temp_infix_left + node.ch + temp_infix_right
+            #对中缀表达式中的乘方符号进行替换            
+            if node.ch == '^':
+                return node.ch + temp_min_left + temp_min_right, temp_infix_left + Generate.power_symbol + temp_infix_right
+            #需要判断重复的符号
+            #按照从小到大的顺序对子树的最小表示进行排列
+            else : # node.ch in "+*"                
                 if(operator.le(temp_min_left,  temp_min_right)): #如果左子树的最小表示小于等于右子树的最小表示
                     return node.ch + temp_min_left + temp_min_right, temp_infix_left + node.ch + temp_infix_right 
                 else:
@@ -245,12 +241,18 @@ class Generate:
     #为中缀表达式加上括号
     def add_brackets(self, infix_left, infix_right, node):
         #如果左子节点是运算符，且优先级小于当前节点，则给左子树的中缀表达式加括号
-        if node.lchild.ch in "+-*/":
+        if node.lchild.ch in "+-*/^":
             if Generate.priority[node.lchild.ch] < Generate.priority[node.ch]:
-                infix_left = '(' + infix_right + ')'
+                infix_left = '(' + infix_left + ')'
+            #如果左子节点和当前节点都是乘方符号，也需要给左子树的中缀表达式加括号
+            elif node.ch == '^' and node.lchild.ch == '^':
+                infix_left = '(' + infix_left + ')'
         #如果右子节点是运算符，且优先级小于等于当前节点，则给右子树的中缀表达式加括号
         if node.rchild.ch in "+-*/^":
-            if Generate.priority[node.rchild.ch] <= Generate.priority[node.ch]:
+            if Generate.priority[node.rchild.ch] < Generate.priority[node.ch]:
+                infix_right = '(' + infix_right + ')'
+            #如果右子节点和当前节点都是乘方符号，不需要给右子树的中缀表达式加括号
+            elif Generate.priority[node.rchild.ch] == Generate.priority[node.ch] and node.rchild.ch in "+-*/":
                 infix_right = '(' + infix_right + ')'
         return infix_left, infix_right
         
