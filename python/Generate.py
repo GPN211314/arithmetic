@@ -151,8 +151,6 @@ class Generate:
             
         while len(stack) > 0:
             postfix_arithmetic.append(stack.pop())
- 
-        print(postfix_arithmetic)
 
         return postfix_arithmetic
 
