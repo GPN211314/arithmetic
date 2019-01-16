@@ -13,5 +13,6 @@
 	/ Main.py
 	/ cal_test.py
 	/ gen_test.py
+	/ arithmetic.exe
 ```
 
