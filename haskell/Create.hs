@@ -82,6 +82,7 @@ creatExpLs x = a:(creatExpLs b)
   where (y, gen) = randomR (2,11) x::(Int, StdGen)
         (a, b) = creatRpn y gen
 
+--过滤掉0的0次方
 --过滤掉表达式无限列表中除数为零的表达式
 --过滤掉过大的指数
 dapFilter::[Expression] -> [Expression]
@@ -99,7 +100,10 @@ dapFilter  = filter (not.dap)
                                                       then True
                                                       else if (denominator.solveRpn.toRpn.preProcess2.preProcess1.show2) r /= 1
                                                               then True
-                                                              else False
+                                                              else if ((solveRpn.toRpn.preProcess2.preProcess1.show2) l == 0%1 &&
+                                                                          (solveRpn.toRpn.preProcess2.preProcess1.show2) r ==0%1)
+                                                                       then True
+                                                                       else False
                           | otherwise = dap l || dap r
 
 
